@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+
+    <style>
+        [v-clock] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<div id="app">
+    <input type="button" value="get" class="get" @click="get">
+    <p>{{joke}}</p>
+</div>
+<script type="text/javascript">
+    var app = new Vue({
+        el: '#app',
+        data: {
+            joke: '好笑的笑话!'
+        },
+        methods: {
+            get: function () {
+                var that = this;
+                axios.get("https://autumnfish.cn/api/joke")
+                     .then(response => (console.log(that.joke=response.data)))
+            }
+        }
+    })
+</script>
+</body>
+</html>

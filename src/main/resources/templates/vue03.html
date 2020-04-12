@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+
+</head>
+<body>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <div id="app">
+        <demo></demo>
+    </div>
+
+    <script type="text/javascript">
+        Vue.component('demo',{
+            template: '<h1>自定义组件</h1>'
+        });
+        var app = new Vue({
+            el: '#app',
+        })
+    </script>
+</body>
+</html>

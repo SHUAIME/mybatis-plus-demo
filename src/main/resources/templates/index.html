@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+        #app {
+            margin: auto;
+            margin-top: 100px;
+            width: 611px;
+            height: 800px;
+        }
+    </style>
+<body>
+<div id="app">
+    <el-form :inline="true" :model="form" class="demo-form-inline">
+        <el-form-item label="姓名">
+            <el-input v-model="form.name"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="getList">查询</el-button>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="toAdd">添加</el-button>
+        </el-form-item>
+    </el-form>
+
+    <el-table
+            :data="heros"
+            border
+            style="width: 100%">
+        <el-table-column
+                prop="id"
+                label="编号"
+                width="150">
+        </el-table-column>
+        <el-table-column
+                prop="name"
+                label="姓名"
+                width="120">
+        </el-table-column>
+        <el-table-column
+                prop="age"
+                label="年龄"
+                width="120">
+        </el-table-column>
+        <el-table-column
+                prop="sex"
+                label="性别"
+                width="120">
+        </el-table-column>
+        <el-table-column
+                label="操作"
+                width="100">
+            <template slot-scope="scope">
+                <el-button @click="deleteHero(scope.row.id)" type="text" size="small">删除</el-button>
+                <el-button @click="selectOne(scope.row.id)" type="text" size="small">编辑</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+    <div>
+        <el-pagination
+                style="margin-top:15px;"
+                background
+                layout="prev, pager, next"
+                :current-page.sync="pagination.page"
+                :page-size.sync="pagination.size"
+                :total="pagination.count"
+                @current-change="handleCurrentChange">
+        </el-pagination>
+    </div>
+
+    <el-dialog title="添加Hero" :visible.sync="dialogFormVisible">
+        <el-form :model="hero">
+            <el-form-item label="姓名" :label-width="formLabelWidth">
+                <el-input v-model="hero.name" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="年龄" :label-width="formLabelWidth">
+                <el-input v-model="hero.age" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="性别" :label-width="formLabelWidth">
+                <el-input v-model="hero.sex" autocomplete="off"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="resetData">取 消</el-button>
+            <el-button type="primary" @click="addOrUpdate">添加</el-button>
+        </div>
+    </el-dialog>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                pagination: {
+                    page: 1,
+                    size: 3,
+                    count: 5,
+                },
+                value: false,
+                form: {
+                    id: '',
+                    name: '',
+                    sex: '',
+                    age: ''
+                },
+                heros: [],
+                hero: {
+                    id: '',
+                    name: '',
+                    sex: '',
+                    age: ''
+                },
+                dialogFormVisible: false,
+                formLabelWidth: '120px'
+            }
+        },
+        mounted() {
+            this.getList();
+        },
+        methods: {
+            toAdd() {
+                Object.assign(this.$data.hero, this.$options.data().hero);
+                this.dialogFormVisible = true;
+            },
+            resetData() {
+                this.dialogFormVisible = false;
+                Object.assign(this.$data, this.$options.data());
+                this.getList();
+            },
+            selectOne(row) {
+                this.form.id = row;
+                var that = this;
+                axios.post("/hero/selectOne", that.form).then(response => {
+                    that.hero = response.data.data;
+                    that.dialogFormVisible = true;
+                })
+            },
+            deleteHero(row) {
+                this.form.id = row;
+                var that = this;
+                axios.post("/hero/delete", that.form).then(response => {
+                    if (response.data.code == 200) {
+                        alert(response.data.message);
+                        that.getList();
+                    } else {
+                        alert(response.data.message);
+                    }
+                })
+            },
+            getList(){
+                const params = this.pagination;
+                var that = this;
+                axios.post('/hero/selectPage?page='+that.pagination.page +'&row='+ that.pagination.size,that.form)
+                    .then(response => {
+                        that.heros = response.data.records
+                        that.pagination.count = response.data.total;
+                    })
+            },
+            handleCurrentChange(page) {
+                this.pagination.page = page;
+                this.getList();
+            },
+            addOrUpdate() {
+                var that = this;
+                if (that.hero.id == "") {
+                    axios.post("/hero/add", that.hero).then(response => {
+                        if (response.data.code == 200) {
+                            alert(response.data.message);
+                            that.dialogFormVisible = false;
+                            Object.assign(this.$data, this.$options.data());
+                            that.getList();
+                        } else {
+                            alert(response.data.message);
+                        }
+                    })
+                }else{
+                    axios.post("/hero/update", that.hero).then(response => {
+                        if (response.data.code == 200) {
+                            alert(response.data.message);
+                            that.dialogFormVisible = false;
+                            Object.assign(this.$data, this.$options.data())
+                            that.getList();
+                        } else {
+                            alert(response.data.message);
+                        }
+                    })
+                }
+
+            }
+        },
+    });
+</script>
+</body>
+</html>
